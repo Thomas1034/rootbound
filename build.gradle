@@ -7,7 +7,7 @@ plugins {
     id 'com.matyrobbrt.mc.registrationutils' version '1.21.3-0.1.0'
 }
 registrationUtils {
-    group 'com.startraveler.verdant.registration'
+    group 'com.startraveler.rootbound.registration'
     projects {
         fabric { type 'fabric' } // The fabric project
         neoforge { type 'neoforge' } // The neoforge project
