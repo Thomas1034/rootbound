@@ -32,7 +32,7 @@ public class ConfiguredFeatureSetEntry extends FeatureSet.Entry {
             Codec.INT.fieldOf("weight").forGetter(ConfiguredFeatureSetEntry::getWeight)
     ).apply(instance, ConfiguredFeatureSetEntry::new));
 
-    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "configured_feature");
+    public static final ResourceLocation TYPE = Constants.location("configured_feature");
 
     private final ResourceLocation configuredFeatureLocation;
     private ConfiguredFeature<?, ?> configuredFeature;

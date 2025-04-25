@@ -30,7 +30,7 @@ public class RecursiveFeatureSetEntry extends FeatureSet.Entry{
             Codec.INT.fieldOf("weight").forGetter(RecursiveFeatureSetEntry::getWeight)
     ).apply(instance, RecursiveFeatureSetEntry::new));
 
-    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "recursive");
+    public static final ResourceLocation TYPE = Constants.location("recursive");
 
     private final ResourceLocation featureSetLocation;
     private FeatureSet featureSet;

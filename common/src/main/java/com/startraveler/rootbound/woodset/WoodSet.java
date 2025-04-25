@@ -117,14 +117,8 @@ public class WoodSet {
         registerEntities();
         registerItems();
         registerTabs();
-        this.logs = TagKey.create(
-                Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, this.setName + "_logs")
-        );
-        this.logItems = TagKey.create(
-                Registries.ITEM,
-                ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, this.setName + "_logs")
-        );
+        this.logs = TagKey.create(Registries.BLOCK, Constants.location(this.setName + "_logs"));
+        this.logItems = TagKey.create(Registries.ITEM, Constants.location(this.setName + "_logs"));
         Services.WOOD_SET_HELPER.registerStrippables(this);
     }
 
@@ -240,6 +234,10 @@ public class WoodSet {
 
     public String getName() {
         return this.setName;
+    }
+
+    public String getModid() {
+        return this.modid;
     }
 
     public WoodType getType() {
@@ -501,6 +499,10 @@ public class WoodSet {
 
     public RegistrationProvider<Block> getBlockProvider() {
         return this.blocks;
+    }
+
+    public RegistrationProvider<Item> getItemProvider() {
+        return this.items;
     }
 
     private BlockBehaviour.Properties blockProperties(String name) {

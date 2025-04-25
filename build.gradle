@@ -4,13 +4,14 @@ plugins {
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.62-beta' apply false
     // helps with multiloader registration
-    id 'com.matyrobbrt.mc.registrationutils' version '1.21.3-0.1.0'
+    id 'com.matyrobbrt.mc.registrationutils' version '1.21.3-0.1.1'
 }
 registrationUtils {
     group 'com.startraveler.rootbound.registration'
     projects {
         fabric { type 'fabric' } // The fabric project
         neoforge { type 'neoforge' } // The neoforge project
+        // forge { type 'forge' } // The forge project (never mind, no support for that)
         common { type 'common' } // The common project
     }
 }

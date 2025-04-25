@@ -35,3 +35,10 @@ loom {
         }
     }
 }
+
+
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name': "com.startraveler.rootbound"
+    }
+}

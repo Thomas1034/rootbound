@@ -1,6 +1,6 @@
 package com.startraveler.rootbound.platform;
 
-import com.startraveler.rootbound.Constants;
+import com.startraveler.rootbound.platform.services.IChunkLinkHandler;
 import com.startraveler.rootbound.platform.services.IPlatformHelper;
 import com.startraveler.rootbound.platform.services.IWoodSetHelper;
 
@@ -16,6 +16,7 @@ public class Services {
     // mod is loaded.
     public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
     public static final IWoodSetHelper WOOD_SET_HELPER = load(IWoodSetHelper.class);
+    public static final IChunkLinkHandler CHUNK_LINK_GETTER = load(IChunkLinkHandler.class);
 
     // This code is used to load a service for the current environment. Your implementation of the service must be defined
     // manually by including a text file in META-INF/services named with the fully qualified class name of the service.
@@ -26,7 +27,7 @@ public class Services {
         final T loadedService = ServiceLoader.load(clazz)
                 .findFirst()
                 .orElseThrow(() -> new NullPointerException("Failed to load service for " + clazz.getName()));
-        Constants.LOG.debug("Loaded {} for service {}", loadedService, clazz);
+        // Constants.LOG.debug("Loaded {} for service {}", loadedService, clazz);
         return loadedService;
     }
 }

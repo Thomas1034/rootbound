@@ -48,3 +48,4 @@ rootProject.name = 'rootbound'
 include('common')
 include('fabric')
 include('neoforge')
+// include('forge') // not supported since regutils doesn't support it

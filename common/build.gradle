@@ -39,3 +39,8 @@ artifacts {
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name': "com.startraveler.rootbound"
+    }
+}

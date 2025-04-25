@@ -10,7 +10,7 @@ public class Constants {
 	public static final String MOD_NAME = "Rootbound";
 	public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
 
-	public ResourceLocation location(String path) {
+	public static ResourceLocation location(String path) {
 		return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, path);
 	}
 }

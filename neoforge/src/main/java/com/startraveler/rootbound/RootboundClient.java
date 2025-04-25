@@ -105,7 +105,7 @@ public class RootboundClient {
 
             // Loot tables.
             generator.addProvider(
-                    true, new LootTableProvider(
+                    true, new RootboundLootTableProvider(
                             packOutput, Collections.emptySet(), List.of(new LootTableProvider.SubProviderEntry(
                             registries -> new RootboundBlockLootTableProvider(registries, woodSets),
                             LootContextParamSets.BLOCK

@@ -41,18 +41,13 @@ import java.util.function.Function;
 
 public class BlockTransformer {
 
-    public static final ResourceKey<Registry<BlockTransformer>> KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID,
-            "block_transformer"
-    ));
+    public static final ResourceKey<Registry<BlockTransformer>> KEY = ResourceKey.createRegistryKey(Constants.location(
+            "block_transformer"));
 
     public static final Codec<List<BlockTransformerData>> DATA_LIST_CODEC = Codec.list(BlockTransformerData.CODEC).xmap(
             list -> {
                 // Validation: Ensure that all objects in the list pass the required field check
-                list.forEach(data -> {
-                    if (!BlockTransformerData.validateRequiredFields(data)) {
-                        throw new IllegalStateException("Block Transformer Data failed to validate");
-                    }
-                });
+                list.forEach(BlockTransformerData::validateRequiredFields);
                 return list;
             }, list -> list
     );
@@ -67,6 +62,7 @@ public class BlockTransformer {
     private final List<ResourceLocation> fallbacks;
     private final List<BlockTransformerData> rawData;
     private final Map<ResourceLocation, BlockTransformer> cachedFallbacks;
+    private final Map<Block, Function<RandomSource, Block>> cache;
     private int numTagsAdded;
 
     public BlockTransformer(List<BlockTransformerData> values, ResourceLocation name) {
@@ -79,6 +75,7 @@ public class BlockTransformer {
         this.cachedFallbacks = new HashMap<>();
         this.rawData = values;
         this.name = name;
+        this.cache = new IdentityHashMap<>();
 
         this.fillData(this.rawData);
 
@@ -86,6 +83,7 @@ public class BlockTransformer {
         List<ResourceLocation> reversedCallbacks = new ArrayList<>(this.fallbacks.reversed());
         this.fallbacks.clear();
         this.fallbacks.addAll(reversedCallbacks);
+
     }
 
     private static Block getBlock(ResourceLocation location) {
@@ -119,7 +117,7 @@ public class BlockTransformer {
 
     private void fillData(List<BlockTransformerData> values) {
         for (BlockTransformerData toLoad : values) {
-            // First, check if it's giving a transformer override.
+            // First, check if it's giving a transformer fallback.
             if (toLoad.transformer != null) {
                 this.fallbacks.add(toLoad.transformer);
             }
@@ -182,21 +180,28 @@ public class BlockTransformer {
 
     private Function<RandomSource, Block> getRaw(Block input, RegistryAccess access) {
 
-        Function<RandomSource, Block> result = this.directMap.get(input);
+        Function<RandomSource, Block> result;
+        if (this.cache.containsKey(input)) {
+            result = this.cache.get(input);
+        } else {
+            result = this.directMap.get(input);
 
-        if (result == null) {
-            result = this.getHighestPriorityTagMapping(input);
-        }
-        // If no result was found yet,
-        if (result == null) {
-            for (ResourceLocation fallback : this.fallbacks) {
-                // Iterate until a valid option is found; then stop.
-                result = this.getFallback(access, fallback).getRaw(input, access);
-                if (result != null) {
-                    break;
+            if (result == null) {
+                result = this.getHighestPriorityTagMapping(input);
+            }
+            // If no result was found yet,
+            if (result == null) {
+                for (ResourceLocation fallback : this.fallbacks) {
+                    // Iterate until a valid option is found; then stop.
+                    result = this.getFallback(access, fallback).getRaw(input, access);
+                    if (result != null) {
+                        break;
+                    }
                 }
             }
+            this.cache.put(input, result);
         }
+
         return result;
     }
 

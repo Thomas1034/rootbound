@@ -37,3 +37,10 @@ neoForge {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name': "com.startraveler.rootbound"
+    }
+}

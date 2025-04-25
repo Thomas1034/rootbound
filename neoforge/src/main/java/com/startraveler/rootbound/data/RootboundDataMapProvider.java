@@ -27,6 +27,11 @@ public class RootboundDataMapProvider extends DataMapProvider {
         }
     }
 
+    @Override
+    public String getName() {
+        return "Rootbound Data Maps";
+    }
+
     public void generateFor(WoodSet woodSet) {
         woodSet.registerFuels(this::addFurnaceFuel);
     }

@@ -39,20 +39,23 @@ import java.util.stream.Collectors;
 
 public class FeatureSet {
 
-    public static final ResourceKey<Registry<FeatureSet>> KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(
-            Constants.MOD_ID, "feature_set"));
+    public static final ResourceKey<Registry<FeatureSet>> KEY = ResourceKey.createRegistryKey(Constants.location(
+            "feature_set"));
 
-    public static final Codec<List<Entry>> ENTRY_LIST_CODEC =
-            Entry.CODEC.listOf();
+    public static final Codec<List<Entry>> ENTRY_LIST_CODEC = Entry.CODEC.listOf();
 
-    public static final Codec<FeatureSet> CODEC = RecordCodecBuilder.create(instance -> instance.group(ENTRY_LIST_CODEC.fieldOf("entries").forGetter(FeatureSet::asEntries), ResourceLocation.CODEC.fieldOf("name").forGetter(bt -> bt.name)).apply(instance, FeatureSet::new));
+    public static final Codec<FeatureSet> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ENTRY_LIST_CODEC.fieldOf("entries").forGetter(FeatureSet::asEntries),
+            ResourceLocation.CODEC.fieldOf("name").forGetter(bt -> bt.name)
+    ).apply(instance, FeatureSet::new));
 
     private final Object2IntMap<Entry> entries;
     private final Function<RandomSource, Entry> aliasMap;
     private final ResourceLocation name;
 
     public FeatureSet(List<Entry> entries, ResourceLocation name) {
-        this.entries = new Object2IntOpenHashMap<>(entries.stream().collect(Collectors.toUnmodifiableMap(Entry::self, Entry::getWeight)));
+        this.entries = new Object2IntOpenHashMap<>(entries.stream()
+                .collect(Collectors.toUnmodifiableMap(Entry::self, Entry::getWeight)));
 
         this.aliasMap = AliasBuilder.build(this.entries);
         this.name = name;
@@ -75,13 +78,15 @@ public class FeatureSet {
                             .map(result -> ops.mapBuilder()
                                     .add("type", ops.createString("recursive"))
                                     .add("entry", result)
-                                    .build(prefix)).getOrThrow();
+                                    .build(prefix))
+                            .getOrThrow();
                 } else if (input instanceof ConfiguredFeatureSetEntry configured) {
                     return ConfiguredFeatureSetEntry.CODEC.encodeStart(ops, configured)
                             .map(result -> ops.mapBuilder()
                                     .add("type", ops.createString("configured"))
                                     .add("entry", result)
-                                    .build(prefix)).getOrThrow();
+                                    .build(prefix))
+                            .getOrThrow();
                 }
                 return DataResult.error(() -> "Unknown FeatureSetEntry implementation: " + input);
             }
