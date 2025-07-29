@@ -55,45 +55,34 @@ public class RootboundLootTableProvider implements DataProvider {
     }
 
     private CompletableFuture<?> run(CachedOutput output, HolderLookup.Provider provider) {
-        WritableRegistry<LootTable> writableRegistry = new MappedRegistry<>(
-                Registries.LOOT_TABLE,
-                Lifecycle.experimental()
-        );
+        WritableRegistry<LootTable> writableregistry = new MappedRegistry<>(Registries.LOOT_TABLE, Lifecycle.experimental());
         Map<RandomSupport.Seed128bit, ResourceLocation> map = new Object2ObjectOpenHashMap<>();
-        this.getTables().forEach((entry) -> (entry.provider().apply(provider)).generate((table, builder) -> {
-            ResourceLocation sequenceId = sequenceIdForLootTable(table);
-            ResourceLocation overwrittenSequenceId = map.put(RandomSequence.seedForKey(sequenceId), sequenceId);
-            if (overwrittenSequenceId != null) {
-                String locationAsString = String.valueOf(overwrittenSequenceId);
-                Util.logAndPauseIfInIde("Loot table random sequence seed collision on " + locationAsString + " and " + table.location());
+        getTables().forEach(subProviderEntry -> subProviderEntry.provider().apply(provider).generate((lootTableResourceKey, builder) -> {
+            ResourceLocation resourcelocation = sequenceIdForLootTable(lootTableResourceKey);
+            ResourceLocation resourcelocation1 = map.put(RandomSequence.seedForKey(resourcelocation), resourcelocation);
+            if (resourcelocation1 != null) {
+                Util.logAndPauseIfInIde("Loot table random sequence seed collision on " + resourcelocation1 + " and " + lootTableResourceKey.location());
             }
 
-            builder.setRandomSequence(sequenceId);
-            LootTable loottable = builder.setParamSet(entry.paramSet()).build();
-            writableRegistry.register(table, loottable, RegistrationInfo.BUILT_IN);
+            builder.setRandomSequence(resourcelocation);
+            LootTable loottable = builder.setParamSet(subProviderEntry.paramSet()).build();
+            writableregistry.register(lootTableResourceKey, loottable, RegistrationInfo.BUILT_IN);
         }));
-        writableRegistry.freeze();
-        ProblemReporter.Collector problemCollector = new ProblemReporter.Collector();
-        HolderGetter.Provider frozenRegistries = (new RegistryAccess.ImmutableRegistryAccess(List.of(writableRegistry))).freeze();
-        ValidationContext validationcontext = new ValidationContext(
-                problemCollector,
-                LootContextParamSets.ALL_PARAMS,
-                frozenRegistries
-        );
-        this.validate(writableRegistry, validationcontext, problemCollector);
-        Multimap<String, String> multimap = problemCollector.get();
-        if (!multimap.isEmpty()) {
-            multimap.forEach((p_124446_, p_124447_) -> LOGGER.warn(
-                    "Found validation problem in {}: {}",
-                    p_124446_,
-                    p_124447_
-            ));
+        writableregistry.freeze();
+        ProblemReporter.Collector problemreporter$collector = new ProblemReporter.Collector();
+        HolderGetter.Provider holdergetter$provider = new RegistryAccess.ImmutableRegistryAccess(List.of(writableregistry)).freeze();
+        ValidationContext validationcontext = new ValidationContext(problemreporter$collector, LootContextParamSets.ALL_PARAMS, holdergetter$provider);
+
+        validate(writableregistry, validationcontext, problemreporter$collector);
+
+        if (!problemreporter$collector.isEmpty()) {
+            problemreporter$collector.forEach((p_421299_, p_421300_) -> LOGGER.warn("Found validation problem in {}: {}", p_421299_, p_421300_.description()));
             throw new IllegalStateException("Failed to validate loot tables, see logs");
         } else {
-            return CompletableFuture.allOf(writableRegistry.entrySet().stream().map((entry) -> {
-                ResourceKey<LootTable> resourceKey = entry.getKey();
-                LootTable loottable = entry.getValue();
-                Path path = this.pathProvider.json(resourceKey.location());
+            return CompletableFuture.allOf(writableregistry.entrySet().stream().map(p_335193_ -> {
+                ResourceKey<LootTable> resourcekey1 = p_335193_.getKey();
+                LootTable loottable = p_335193_.getValue();
+                Path path = this.pathProvider.json(resourcekey1.location());
                 return DataProvider.saveStable(output, provider, LootTable.DIRECT_CODEC, loottable, path);
             }).toArray(CompletableFuture[]::new));
         }
@@ -104,18 +93,18 @@ public class RootboundLootTableProvider implements DataProvider {
     }
 
     protected void validate(WritableRegistry<LootTable> writableregistry, ValidationContext validationcontext, ProblemReporter.Collector problemreporter$collector) {
-
-        for (ResourceKey<LootTable> resourcekey : Sets.difference(
-                this.requiredTables,
-                writableregistry.registryKeySet()
-        )) {
-            problemreporter$collector.report("Missing built-in table: " + resourcekey.location());
+        for (ResourceKey<LootTable> resourcekey : Sets.difference(this.requiredTables, writableregistry.registryKeySet())) {
+            problemreporter$collector.report(new LootTableProvider.MissingTableProblem(resourcekey));
         }
 
         writableregistry.listElements()
-                .forEach((entry) -> entry.value()
-                        .validate(validationcontext.setContextKeySet(entry.value().getParamSet())
-                                .enterElement("{" + entry.key().location() + "}", entry.key())));
+                .forEach(
+                        p_380823_ -> p_380823_.value()
+                                .validate(
+                                        validationcontext.setContextKeySet(p_380823_.value().getParamSet())
+                                                .enterElement(new ProblemReporter.RootElementPathElement(p_380823_.key()), p_380823_.key())
+                                )
+                );
     }
 
 }

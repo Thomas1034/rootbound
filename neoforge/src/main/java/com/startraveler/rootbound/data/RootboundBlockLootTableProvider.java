@@ -62,6 +62,12 @@ public class RootboundBlockLootTableProvider extends BlockLootSubProvider {
         this.dropOther(woodSet.getHangingSign().get(), woodSet.getHangingSignItem().get());
         this.add(woodSet.getSlab().get(), this.createSlabItemTable(woodSet.getSlab().get()));
         this.add(woodSet.getDoor().get(), this.createDoorTable(woodSet.getDoor().get()));
+
+        if (woodSet.hasMosaic()) {
+            this.dropSelf(woodSet.getMosaic().get());
+            this.dropSelf(woodSet.getMosaicStairs().get());
+            this.add(woodSet.getMosaicSlab().get(), this.createSlabItemTable(woodSet.getMosaicSlab().get()));
+        }
     }
 }
 

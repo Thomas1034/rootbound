@@ -52,12 +52,12 @@ public class ConfiguredFeatureSetEntry extends FeatureSet.Entry {
     }
 
     @Override
-    public void place(ServerLevel level, BlockPos pos) {
+    public boolean place(ServerLevel level, BlockPos pos) {
         if (this.configuredFeature == null) {
             this.configuredFeature = level.registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).get(this.configuredFeatureLocation).orElseThrow().value();
         }
         // If it's still null, throw.
-        this.configuredFeature.place(level, level.getChunkSource().getGenerator(), level.getRandom(), pos);
+        return this.configuredFeature.place(level, level.getChunkSource().getGenerator(), level.getRandom(), pos);
     }
 
 

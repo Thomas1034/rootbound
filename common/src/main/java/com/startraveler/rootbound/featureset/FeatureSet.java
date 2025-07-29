@@ -65,8 +65,8 @@ public class FeatureSet {
         return this.entries.keySet().stream().toList();
     }
 
-    public void place(ServerLevel level, BlockPos pos) {
-        aliasMap.apply(level.random).place(level, pos);
+    public boolean place(ServerLevel level, BlockPos pos) {
+        return aliasMap.apply(level.random).place(level, pos);
     }
 
     public abstract static class Entry {
@@ -134,7 +134,7 @@ public class FeatureSet {
 
         public abstract ResourceLocation getType();
 
-        public abstract void place(ServerLevel level, BlockPos pos);
+        public abstract boolean place(ServerLevel level, BlockPos pos);
     }
 }
 

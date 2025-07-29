@@ -1,6 +1,7 @@
 package com.startraveler.rootbound;
 
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.startraveler.rootbound.data.*;
 import com.startraveler.rootbound.registration.RegistryObject;
 import com.startraveler.rootbound.woodset.WoodSet;
@@ -8,6 +9,7 @@ import net.minecraft.client.model.BoatModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.BoatRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.core.HolderLookup;
@@ -27,6 +29,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -71,9 +74,8 @@ public class RootboundClient {
                                 (context) -> new BoatRenderer(context, locationForChestBoat.get(woodSet.getChestBoat()))
                         );
 
-
-                        ItemBlockRenderTypes.setRenderLayer(woodSet.getTrapdoor().get(), RenderType.CUTOUT);
-                        ItemBlockRenderTypes.setRenderLayer(woodSet.getDoor().get(), RenderType.CUTOUT);
+                        ItemBlockRenderTypes.setRenderLayer(woodSet.getTrapdoor().get(), ChunkSectionLayer.CUTOUT);
+                        ItemBlockRenderTypes.setRenderLayer(woodSet.getDoor().get(), ChunkSectionLayer.CUTOUT);
                     }
 
                 })
@@ -122,17 +124,16 @@ public class RootboundClient {
             generator.addProvider(true, new RootboundRecipeProvider.Runner(packOutput, lookupProvider, woodSets));
 
             // Generate data for the tags
-            BlockTagsProvider blockTagsProvider = new RootboundBlockTagProvider(packOutput, lookupProvider, woodSets);
-            generator.addProvider(true, blockTagsProvider);
-            generator.addProvider(
-                    true,
-                    new RootboundItemTagProvider(
-                            packOutput,
-                            lookupProvider,
-                            blockTagsProvider.contentsGetter(),
-                            woodSets
-                    )
-            );
+//            BlockTagsProvider blockTagsProvider = new RootboundBlockTagProvider(packOutput, lookupProvider, woodSets);
+//            generator.addProvider(true, blockTagsProvider);
+//            generator.addProvider(
+//                    true,
+//                    new RootboundItemTagProvider(
+//                            packOutput,
+//                            lookupProvider,
+//                            woodSets
+//                    )
+//            );
 
             // Generate block and item models.
             generator.addProvider(true, new RootboundModelProvider(packOutput, woodSets));

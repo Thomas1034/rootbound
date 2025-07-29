@@ -3,9 +3,6 @@ package com.startraveler.rootbound;
 
 import com.startraveler.rootbound.blocktransformer.BlockTransformer;
 import com.startraveler.rootbound.featureset.FeatureSet;
-import com.startraveler.rootbound.tiling.data.StructureTile;
-import com.startraveler.rootbound.tiling.data.TileConnection;
-import com.startraveler.rootbound.tiling.data.TileSet;
 import com.startraveler.rootbound.woodset.WoodSet;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityType;
@@ -41,8 +38,6 @@ public class Rootbound {
         CommonClass.init();
 
         modBus.addListener(this::registerDatapackRegistries);
-
-        AttachmentRegistry.register(modBus);
     }
 
 
@@ -96,8 +91,5 @@ public class Rootbound {
     public void registerDatapackRegistries(final DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(BlockTransformer.KEY, BlockTransformer.CODEC, BlockTransformer.CODEC);
         event.dataPackRegistry(FeatureSet.KEY, FeatureSet.CODEC, FeatureSet.CODEC);
-        event.dataPackRegistry(TileConnection.KEY, TileConnection.CODEC);
-        event.dataPackRegistry(StructureTile.KEY, StructureTile.CODEC);
-        event.dataPackRegistry(TileSet.KEY, TileSet.CODEC);
     }
 }

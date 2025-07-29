@@ -50,11 +50,11 @@ public class RecursiveFeatureSetEntry extends FeatureSet.Entry{
     }
 
     @Override
-    public void place(ServerLevel level, BlockPos pos) {
+    public boolean place(ServerLevel level, BlockPos pos) {
         if (this.featureSet == null) {
             this.featureSet = level.registryAccess().lookupOrThrow(FeatureSet.KEY).get(this.featureSetLocation).orElseThrow().value();
         }
-        this.featureSet.place(level, pos);
+        return this.featureSet.place(level, pos);
     }
 }
 

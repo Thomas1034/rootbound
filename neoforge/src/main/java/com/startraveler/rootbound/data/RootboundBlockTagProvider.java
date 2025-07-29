@@ -15,7 +15,11 @@ public class RootboundBlockTagProvider extends BlockTagsProvider {
     protected final Set<WoodSet> woodSets;
 
     public RootboundBlockTagProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, Set<WoodSet> woodSets) {
-        super(output, lookupProvider, Constants.MOD_ID);
+        this(output, lookupProvider, woodSets, Constants.MOD_ID);
+    }
+
+    public RootboundBlockTagProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, Set<WoodSet> woodSets, String modId) {
+        super(output, lookupProvider, modId);
         this.woodSets = woodSets;
     }
 
@@ -78,5 +82,15 @@ public class RootboundBlockTagProvider extends BlockTagsProvider {
         }
         this.tag(Tags.Blocks.FENCE_GATES_WOODEN).add(woodSet.getFenceGate().get());
         this.tag(Tags.Blocks.FENCES_WOODEN).add(woodSet.getFence().get());
+
+        if (woodSet.hasMosaic()) {
+            this.tag(BlockTags.MINEABLE_WITH_AXE).add(
+                    woodSet.getMosaic().get(),
+                    woodSet.getMosaicSlab().get(),
+                    woodSet.getMosaicStairs().get()
+            );
+            this.tag(BlockTags.WOODEN_SLABS).add(woodSet.getMosaicSlab().get());
+            this.tag(BlockTags.WOODEN_STAIRS).add(woodSet.getMosaicStairs().get());
+        }
     }
 }

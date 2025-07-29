@@ -2,29 +2,18 @@ package com.startraveler.rootbound;
 
 import com.startraveler.rootbound.blocktransformer.BlockTransformer;
 import com.startraveler.rootbound.featureset.FeatureSet;
-import com.startraveler.rootbound.tiling.attachment.ChunkLinkColumn;
-import com.startraveler.rootbound.tiling.data.StructureTile;
-import com.startraveler.rootbound.tiling.data.TileConnection;
-import com.startraveler.rootbound.tiling.data.TileSet;
 import com.startraveler.rootbound.woodset.WoodSet;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.Set;
 
 public class Rootbound implements ModInitializer {
 
-    public static final AttachmentType<ChunkLinkColumn> CHUNK_LINK = AttachmentRegistry.<ChunkLinkColumn>builder()
-            .initializer(ChunkLinkColumn::empty)
-            .persistent(ChunkLinkColumn.CODEC)
-            .buildAndRegister(Constants.location("chunk_link"));
 
     public static void initializeWoodSets(Set<WoodSet> sets) {
         // Add wood sets.
@@ -53,9 +42,6 @@ public class Rootbound implements ModInitializer {
 
         DynamicRegistries.registerSynced(BlockTransformer.KEY, BlockTransformer.CODEC);
         DynamicRegistries.registerSynced(FeatureSet.KEY, FeatureSet.CODEC);
-        DynamicRegistries.register(TileConnection.KEY, TileConnection.CODEC);
-        DynamicRegistries.register(StructureTile.KEY, StructureTile.CODEC);
-        DynamicRegistries.register(TileSet.KEY, TileSet.CODEC);
 
     }
 }

@@ -1,7 +1,5 @@
 package com.startraveler.rootbound;
 
-import com.startraveler.rootbound.tiling.feature.FeatureRegistry;
-
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
 // common compatible binaries. This means common code can not directly use loader specific concepts such as Forge events
@@ -12,6 +10,5 @@ public class CommonClass {
     // write the majority of your code here and load it from your loader specific projects. This example has some
     // code that gets invoked by the entry point of the loader specific projects.
     public static void init() {
-        FeatureRegistry.init();
     }
 }

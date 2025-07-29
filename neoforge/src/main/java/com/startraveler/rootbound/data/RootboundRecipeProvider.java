@@ -174,6 +174,29 @@ public class RootboundRecipeProvider extends RecipeProvider {
                 .unlockedBy(hasPlanks(woodSet), has(woodSet.getPlanks().get()))
                 .save(this.output);
 
+        if (woodSet.hasMosaic()) {
+            shaped(
+                    List.of("s", "s"),
+                    List.of('s'),
+                    List.of(woodSet.getSlab().get()),
+                    RecipeCategory.BUILDING_BLOCKS,
+                    woodSet.getMosaic().get(),
+                    1
+            );
+            stairBuilder(woodSet.getMosaicStairs().get(), Ingredient.of(woodSet.getMosaic().get())).group(
+                            "wooden_stairs")
+                    .unlockedBy(hasPlanks(woodSet), has(woodSet.getMosaic().get()))
+                    .save(this.output);
+            this.slabBuilder(
+                            RecipeCategory.BUILDING_BLOCKS,
+                            woodSet.getMosaicSlab().get(),
+                            Ingredient.of(woodSet.getMosaic().get())
+                    )
+                    .unlockedBy(hasPlanks(woodSet), this.has(woodSet.getMosaic().get()))
+                    .group("wooden_slab")
+                    .save(this.output);
+        }
+
         this.slabBuilder(
                         RecipeCategory.BUILDING_BLOCKS,
                         woodSet.getSlab().get(),

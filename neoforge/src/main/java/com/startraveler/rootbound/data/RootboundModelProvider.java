@@ -69,6 +69,9 @@ public class RootboundModelProvider extends ModelProvider {
         Block planks = woodSet.getPlanks().get();
 
         blockModels.family(woodSet.getPlanks().get()).generateFor(woodSet.getFamily());
+        if (woodSet.hasMosaic()) {
+            blockModels.family(woodSet.getMosaic().get()).generateFor(woodSet.getMosaicFamily());
+        }
         blockModels.createHangingSign(planks, woodSet.getHangingSign().get(), woodSet.getWallHangingSign().get());
         blockModels.createAxisAlignedPillarBlock(woodSet.getLog().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getStrippedLog().get(), TexturedModel.COLUMN);

@@ -40,6 +40,7 @@ import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.PushReaction;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -66,7 +67,7 @@ public class WoodSet {
     private final boolean isFlammable;
     // The burn time factor of the set
     private final float burnTimeFactor;
-
+    private final boolean hasMosaic;
     // The blocks created
     protected RegistryObject<Block, Block> log;
     protected RegistryObject<Block, Block> wood;
@@ -99,8 +100,16 @@ public class WoodSet {
     protected TagKey<Item> logItems;
     // The block family
     protected BlockFamily family = null;
+    private BlockFamily mosaicFamily = null;
+    private RegistryObject<Block, Block> mosaic;
+    private RegistryObject<Block, Block> mosaicSlab;
+    private RegistryObject<Block, Block> mosaicStairs;
 
     public WoodSet(String modid, String setName, Supplier<BlockBehaviour.Properties> baseProperties, float burnTimeFactor, boolean isFlammable) {
+        this(modid, setName, baseProperties, burnTimeFactor, isFlammable, false);
+    }
+
+    public WoodSet(String modid, String setName, Supplier<BlockBehaviour.Properties> baseProperties, float burnTimeFactor, boolean isFlammable, boolean hasMosaic) {
         this.modid = modid;
         this.setName = setName;
         this.base = baseProperties;
@@ -112,6 +121,7 @@ public class WoodSet {
         this.woodType = WoodType.register(new WoodType(this.setName, this.setType));
         this.isFlammable = isFlammable;
         this.burnTimeFactor = burnTimeFactor;
+        this.hasMosaic = hasMosaic;
 
         registerBlocks();
         registerEntities();
@@ -138,10 +148,20 @@ public class WoodSet {
         );
     }
 
-    public BlockFamily getFamily() {
+    public BlockFamily getMosaicFamily() {
+        if (this.mosaicFamily == null && this.hasMosaic) {
+            BlockFamily.Builder builder = new BlockFamily.Builder(this.getMosaic().get())
+                    .slab(this.getMosaicSlab().get())
+                    .stairs(this.getMosaicStairs().get());
+            this.mosaicFamily = builder
+                    .getFamily();
+        }
+        return this.mosaicFamily;
+    }
 
+    public BlockFamily getFamily() {
         if (this.family == null) {
-            this.family = new BlockFamily.Builder(this.getPlanks().get()).fence(this.getFence().get())
+            BlockFamily.Builder builder = new BlockFamily.Builder(this.getPlanks().get()).fence(this.getFence().get())
                     .fenceGate(this.getFenceGate().get())
                     .slab(this.getSlab().get())
                     .stairs(this.getStairs().get())
@@ -149,7 +169,11 @@ public class WoodSet {
                     .sign(this.getSign().get(), this.getWallSign().get())
                     .button(this.getButton().get())
                     .door(this.getDoor().get())
-                    .trapdoor(this.getTrapdoor().get())
+                    .trapdoor(this.getTrapdoor().get());
+            if (this.hasMosaic) {
+                builder.mosaic(this.getMosaic().get());
+            }
+            this.family = builder
                     .getFamily();
         }
 
@@ -173,6 +197,11 @@ public class WoodSet {
             registrar.accept(this.fenceGate.get(), 5, 20);
             registrar.accept(this.door.get(), 5, 20);
             registrar.accept(this.trapdoor.get(), 5, 20);
+            if (this.hasMosaic) {
+                registrar.accept(this.mosaic.get(), 5, 20);
+                registrar.accept(this.mosaicSlab.get(), 5, 20);
+                registrar.accept(this.mosaicStairs.get(), 5, 20);
+            }
         }
     }
 
@@ -197,6 +226,11 @@ public class WoodSet {
                             output.accept(this.planks.get());
                             output.accept(this.slab.get());
                             output.accept(this.stairs.get());
+                            if (this.hasMosaic) {
+                                output.accept(this.mosaic.get());
+                                output.accept(this.mosaicSlab.get());
+                                output.accept(this.mosaicStairs.get());
+                            }
                             output.accept(this.fence.get());
                             output.accept(this.fenceGate.get());
                             output.accept(this.door.get());
@@ -230,6 +264,11 @@ public class WoodSet {
         registrar.accept(this.trapdoor.get(), (int) (BurnTimes.TRAPDOOR * this.burnTimeFactor));
         registrar.accept(this.signItem.get(), (int) (BurnTimes.SIGN * this.burnTimeFactor));
         registrar.accept(this.hangingSignItem.get(), (int) (BurnTimes.HANGING_SIGN * this.burnTimeFactor));
+        if (this.hasMosaic) {
+            registrar.accept(this.mosaic.get(), (int) (BurnTimes.PLANKS * this.burnTimeFactor));
+            registrar.accept(this.mosaicStairs.get(), (int) (BurnTimes.STAIRS * this.burnTimeFactor));
+            registrar.accept(this.mosaicSlab.get(), (int) (BurnTimes.SLAB * this.burnTimeFactor));
+        }
     }
 
     public String getName() {
@@ -366,6 +405,23 @@ public class WoodSet {
                 typeName("_door"),
                 () -> new DoorBlock(this.setType, this.doorProperties(typeName("_door")))
         );
+        if (this.hasMosaic) {
+            this.mosaic = registerBlockWithItem(
+                    typeName("_mosaic"),
+                    () -> new Block(this.planksProperties(typeName("_mosaic")))
+            );
+            this.mosaicSlab = registerBlockWithItem(
+                    typeName("_mosaic_slab"),
+                    () -> new SlabBlock(this.slabProperties(typeName("_mosaic_slab")))
+            );
+            this.mosaicStairs = registerBlockWithItem(
+                    typeName("_mosaic_stairs"),
+                    () -> new StairBlock(
+                            this.mosaic.get().defaultBlockState(),
+                            this.stairsProperties(typeName("_mosaic_stairs"))
+                    )
+            );
+        }
     }
 
     protected String typeName(String suffix) {
@@ -441,6 +497,18 @@ public class WoodSet {
         return stairs;
     }
 
+    public @Nullable RegistryObject<Block, Block> getMosaic() {
+        return mosaic;
+    }
+
+    public @Nullable RegistryObject<Block, Block> getMosaicSlab() {
+        return mosaicSlab;
+    }
+
+    public @Nullable RegistryObject<Block, Block> getMosaicStairs() {
+        return mosaicStairs;
+    }
+
     public RegistryObject<Block, Block> getFence() {
         return fence;
     }
@@ -505,11 +573,11 @@ public class WoodSet {
         return this.items;
     }
 
-    private BlockBehaviour.Properties blockProperties(String name) {
+    public BlockBehaviour.Properties blockProperties(String name) {
         return this.base.get().setId(id(name));
     }
 
-    private BlockBehaviour.Properties blockProperties(Block block, String name) {
+    public BlockBehaviour.Properties blockProperties(Block block, String name) {
         return BlockBehaviour.Properties.ofFullCopy(block).setId(id(name));
     }
 
@@ -575,6 +643,10 @@ public class WoodSet {
 
     private ResourceKey<Block> id(String name) {
         return ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(this.modid, name));
+    }
+
+    public boolean hasMosaic() {
+        return this.hasMosaic;
     }
 
     public static class BurnTimes {
