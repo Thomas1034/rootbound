@@ -242,6 +242,7 @@ public class WoodSet {
                             output.accept(this.trapdoor.get());
                             output.accept(this.button.get());
                             output.accept(this.pressurePlate.get());
+                            output.accept(this.shelf.get());
                             output.accept(this.signItem.get());
                             output.accept(this.hangingSignItem.get());
                             output.accept(this.boatItem.get());
