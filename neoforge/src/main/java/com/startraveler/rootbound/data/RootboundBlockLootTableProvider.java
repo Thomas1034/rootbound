@@ -1,12 +1,13 @@
 package com.startraveler.rootbound.data;
 
 
-import com.startraveler.rootbound.woodset.WoodSet;
 import com.startraveler.rootbound.registration.RegistryObject;
+import com.startraveler.rootbound.woodset.WoodSet;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class RootboundBlockLootTableProvider extends BlockLootSubProvider {
     }
 
     @Override
-    protected Iterable<Block> getKnownBlocks() {
+    protected @NotNull Iterable<Block> getKnownBlocks() {
         return this.knownBlocks;
     }
 
@@ -56,6 +57,7 @@ public class RootboundBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(woodSet.getButton().get());
         this.dropSelf(woodSet.getPressurePlate().get());
         this.dropSelf(woodSet.getTrapdoor().get());
+        this.dropSelf(woodSet.getShelf().get());
         this.dropOther(woodSet.getWallSign().get(), woodSet.getSignItem().get());
         this.dropOther(woodSet.getSign().get(), woodSet.getSignItem().get());
         this.dropOther(woodSet.getWallHangingSign().get(), woodSet.getHangingSignItem().get());
@@ -64,9 +66,12 @@ public class RootboundBlockLootTableProvider extends BlockLootSubProvider {
         this.add(woodSet.getDoor().get(), this.createDoorTable(woodSet.getDoor().get()));
 
         if (woodSet.hasMosaic()) {
-            this.dropSelf(woodSet.getMosaic().get());
-            this.dropSelf(woodSet.getMosaicStairs().get());
-            this.add(woodSet.getMosaicSlab().get(), this.createSlabItemTable(woodSet.getMosaicSlab().get()));
+            this.dropSelf(woodSet.getOrThrowMosaic().get());
+            this.dropSelf(woodSet.getOrThrowMosaicStairs().get());
+            this.add(
+                    woodSet.getOrThrowMosaicSlab().get(),
+                    this.createSlabItemTable(woodSet.getOrThrowMosaicSlab().get())
+            );
         }
     }
 }

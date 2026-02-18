@@ -7,10 +7,12 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+@SuppressWarnings("unused")
 public class RootboundBlockTagProvider extends BlockTagsProvider {
     protected final Set<WoodSet> woodSets;
 
@@ -24,7 +26,7 @@ public class RootboundBlockTagProvider extends BlockTagsProvider {
     }
 
     @Override
-    protected void addTags(HolderLookup.Provider provider) {
+    protected void addTags(HolderLookup.@NotNull Provider provider) {
         for (WoodSet woodSet : this.woodSets) {
             generateFor(woodSet);
         }
@@ -55,8 +57,10 @@ public class RootboundBlockTagProvider extends BlockTagsProvider {
                 woodSet.getButton().get(),
                 woodSet.getPressurePlate().get(),
                 woodSet.getDoor().get(),
-                woodSet.getTrapdoor().get()
+                woodSet.getTrapdoor().get(),
+                woodSet.getShelf().get()
         );
+        this.tag(BlockTags.WOODEN_SHELVES).add(woodSet.getShelf().get());
         this.tag(BlockTags.WOODEN_TRAPDOORS).add(woodSet.getTrapdoor().get());
         this.tag(BlockTags.WOODEN_DOORS).add(woodSet.getDoor().get());
         this.tag(BlockTags.WOODEN_SLABS).add(woodSet.getSlab().get());
@@ -85,12 +89,12 @@ public class RootboundBlockTagProvider extends BlockTagsProvider {
 
         if (woodSet.hasMosaic()) {
             this.tag(BlockTags.MINEABLE_WITH_AXE).add(
-                    woodSet.getMosaic().get(),
-                    woodSet.getMosaicSlab().get(),
-                    woodSet.getMosaicStairs().get()
+                    woodSet.getOrThrowMosaic().get(),
+                    woodSet.getOrThrowMosaicSlab().get(),
+                    woodSet.getOrThrowMosaicStairs().get()
             );
-            this.tag(BlockTags.WOODEN_SLABS).add(woodSet.getMosaicSlab().get());
-            this.tag(BlockTags.WOODEN_STAIRS).add(woodSet.getMosaicStairs().get());
+            this.tag(BlockTags.WOODEN_SLABS).add(woodSet.getOrThrowMosaicSlab().get());
+            this.tag(BlockTags.WOODEN_STAIRS).add(woodSet.getOrThrowMosaicStairs().get());
         }
     }
 }

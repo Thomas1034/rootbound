@@ -20,32 +20,32 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.startraveler.rootbound.Constants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 
 public class RecursiveFeatureSetEntry extends FeatureSet.Entry{
 
     public static final Codec<RecursiveFeatureSetEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("configured_feature").forGetter(RecursiveFeatureSetEntry::getFeatureSetLocation),
+            Identifier.CODEC.fieldOf("configured_feature").forGetter(RecursiveFeatureSetEntry::getFeatureSetLocation),
             Codec.INT.fieldOf("weight").forGetter(RecursiveFeatureSetEntry::getWeight)
     ).apply(instance, RecursiveFeatureSetEntry::new));
 
-    public static final ResourceLocation TYPE = Constants.location("recursive");
+    public static final Identifier TYPE = Constants.location("recursive");
 
-    private final ResourceLocation featureSetLocation;
+    private final Identifier featureSetLocation;
     private FeatureSet featureSet;
 
-    public RecursiveFeatureSetEntry(ResourceLocation location, int weight) {
+    public RecursiveFeatureSetEntry(Identifier location, int weight) {
         super(weight);
         this.featureSetLocation = location;
     }
 
-    public ResourceLocation getFeatureSetLocation() {
+    public Identifier getFeatureSetLocation() {
         return this.featureSetLocation;
     }
 
     @Override
-    public ResourceLocation getType() {
+    public Identifier getType() {
         return TYPE;
     }
 

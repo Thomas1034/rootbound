@@ -29,7 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 
@@ -46,14 +46,14 @@ public class FeatureSet {
 
     public static final Codec<FeatureSet> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ENTRY_LIST_CODEC.fieldOf("entries").forGetter(FeatureSet::asEntries),
-            ResourceLocation.CODEC.fieldOf("name").forGetter(bt -> bt.name)
+            Identifier.CODEC.fieldOf("name").forGetter(bt -> bt.name)
     ).apply(instance, FeatureSet::new));
 
     private final Object2IntMap<Entry> entries;
     private final Function<RandomSource, Entry> aliasMap;
-    private final ResourceLocation name;
+    private final Identifier name;
 
-    public FeatureSet(List<Entry> entries, ResourceLocation name) {
+    public FeatureSet(List<Entry> entries, Identifier name) {
         this.entries = new Object2IntOpenHashMap<>(entries.stream()
                 .collect(Collectors.toUnmodifiableMap(Entry::self, Entry::getWeight)));
 
@@ -132,7 +132,8 @@ public class FeatureSet {
             return this;
         }
 
-        public abstract ResourceLocation getType();
+        @SuppressWarnings("unused")
+        public abstract Identifier getType();
 
         public abstract boolean place(ServerLevel level, BlockPos pos);
     }

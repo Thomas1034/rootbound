@@ -22,12 +22,14 @@ import com.startraveler.rootbound.Constants;
 import com.startraveler.rootbound.blocktransformer.data.BlockTransformerData;
 import com.startraveler.rootbound.blocktransformer.data.BlockTransformerResultOption;
 import com.startraveler.rootbound.util.AliasBuilder;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
@@ -51,21 +53,21 @@ public class BlockTransformer {
     );
     public static final Codec<BlockTransformer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             DATA_LIST_CODEC.fieldOf("values").forGetter(BlockTransformer::asData),
-            ResourceLocation.CODEC.fieldOf("name").forGetter(bt -> bt.name)
+            Identifier.CODEC.fieldOf("name").forGetter(bt -> bt.name)
     ).apply(instance, BlockTransformer::new));
-    public final ResourceLocation name;
+    public final Identifier name;
     private final Map<TagKey<Block>, Function<RandomSource, Block>> tagMap;
     private final Object2IntMap<TagKey<Block>> tagPriorityMap;
     private final Map<Block, Function<RandomSource, Block>> directMap;
-    private final List<ResourceLocation> fallbacks;
+    private final List<Identifier> fallbacks;
     private final List<BlockTransformerData> rawData;
-    private final Map<ResourceLocation, BlockTransformer> cachedFallbacks;
+    private final Map<Identifier, BlockTransformer> cachedFallbacks;
     private final Map<Block, Function<RandomSource, Block>> cachedTagMappings;
     private final Map<Block, Function<RandomSource, Block>> cache;
     private final Map<Block, Boolean> cachedValidInputs;
     private int numTagsAdded;
 
-    public BlockTransformer(List<BlockTransformerData> values, ResourceLocation name) {
+    public BlockTransformer(List<BlockTransformerData> values, Identifier name) {
         this.tagMap = new HashMap<>();
         this.tagPriorityMap = new Object2IntOpenHashMap<>();
         this.tagPriorityMap.defaultReturnValue(-1);
@@ -82,20 +84,19 @@ public class BlockTransformer {
         this.fillData(this.rawData);
 
         // Reverse the list of fallbacks; this makes ones added last have higher priority.
-        List<ResourceLocation> reversedCallbacks = new ArrayList<>(this.fallbacks.reversed());
+        List<Identifier> reversedCallbacks = new ArrayList<>(this.fallbacks.reversed());
         this.fallbacks.clear();
         this.fallbacks.addAll(reversedCallbacks);
 
     }
 
-    private static Block getBlock(ResourceLocation location) {
+    private static Block getBlock(Identifier location) {
         Block block = BuiltInRegistries.BLOCK.get(location).orElseThrow().value();
         Objects.requireNonNull(block, "Unrecognized block " + location + "in BlockTransformer");
         return block;
     }
 
     // Copies the properties of one block state onto the default state of another block, to whatever degree is possible.
-    @SuppressWarnings("unchecked")
     public static BlockState copyProperties(BlockState input, Block to) {
         // Don't do unnecessary work.
         if (to == null || input.is(to)) {
@@ -184,7 +185,7 @@ public class BlockTransformer {
                 this.lookupHighestPriorityTagMapping(block)
         );
         if (result == null) {
-            for (ResourceLocation fallback : this.fallbacks) {
+            for (Identifier fallback : this.fallbacks) {
                 result = this.getFallback(access, fallback).getRaw(block, access);
                 if (result != null) {
                     break;
@@ -213,6 +214,7 @@ public class BlockTransformer {
         return mapping;
     }
 
+    @SuppressWarnings("deprecation")
     private Function<RandomSource, Block> computeHighestPriorityTagMapping(Block block) {
         int highestPriority = -1;
         TagKey<Block> selectedTag = null;
@@ -227,6 +229,7 @@ public class BlockTransformer {
         return null == selectedTag ? null : this.tagMap.get(selectedTag);
     }
 
+    @SuppressWarnings("unused")
     public boolean isValidInput(RegistryAccess access, @NotNull BlockState input) {
         return this.isValidInput(access, input.getBlock());
     }
@@ -241,11 +244,13 @@ public class BlockTransformer {
     }
 
     private boolean computeIsValidInput(RegistryAccess access, Block block) {
-        return this.directMap.containsKey(block) || this.hasValidTagMapping(block) || this.hasValidFallbackMapping(access,
+        return this.directMap.containsKey(block) || this.hasValidTagMapping(block) || this.hasValidFallbackMapping(
+                access,
                 block
         );
     }
 
+    @SuppressWarnings("deprecation")
     private boolean hasValidTagMapping(@NotNull Block input) {
         Set<TagKey<Block>> tags = this.tagMap.keySet();
         for (TagKey<Block> tag : tags) {
@@ -258,7 +263,7 @@ public class BlockTransformer {
     }
 
     private boolean hasValidFallbackMapping(RegistryAccess access, @NotNull Block input) {
-        for (ResourceLocation location : this.fallbacks) {
+        for (Identifier location : this.fallbacks) {
             if (this.getFallback(access, location).isValidInput(access, input)) {
                 return true;
             }
@@ -267,7 +272,7 @@ public class BlockTransformer {
     }
 
     // Note: this could cause an infinite loop if a fallback of this registry at any point lists this as a fallback.
-    private BlockTransformer getFallback(RegistryAccess access, ResourceLocation location) {
+    private BlockTransformer getFallback(RegistryAccess access, Identifier location) {
         if (this.cachedFallbacks.containsKey(location)) {
             return this.cachedFallbacks.get(location);
         }

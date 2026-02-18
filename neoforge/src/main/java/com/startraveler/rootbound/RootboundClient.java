@@ -1,14 +1,12 @@
 package com.startraveler.rootbound;
 
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.startraveler.rootbound.data.*;
 import com.startraveler.rootbound.registration.RegistryObject;
 import com.startraveler.rootbound.woodset.WoodSet;
-import net.minecraft.client.model.BoatModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.object.boat.BoatModel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.BoatRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -17,11 +15,11 @@ import net.minecraft.core.WritableRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.ChestBoat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.boat.ChestBoat;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -29,9 +27,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.*;
@@ -40,10 +36,11 @@ import java.util.concurrent.CompletableFuture;
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
 public class RootboundClient {
 
-    public RootboundClient(IEventBus modBus) {
+    public RootboundClient(@SuppressWarnings("unused") IEventBus modBus) {
 
     }
 
+    @SuppressWarnings({"unused", "deprecation"})
     public static void initializeWoodSets(IEventBus modBus, Set<WoodSet> sets) {
 
         final Map<RegistryObject<EntityType<?>, EntityType<? extends Boat>>, ModelLayerLocation> locationForBoat = new HashMap<>();
@@ -51,11 +48,11 @@ public class RootboundClient {
 
         for (WoodSet woodSet : sets) {
             ModelLayerLocation boat = new ModelLayerLocation(
-                    ResourceLocation.withDefaultNamespace("boat/" + woodSet.getName()),
+                    Identifier.withDefaultNamespace("boat/" + woodSet.getName()),
                     "main"
             );
             ModelLayerLocation chestBoat = new ModelLayerLocation(
-                    ResourceLocation.withDefaultNamespace("chest_boat/" + woodSet.getName()),
+                    Identifier.withDefaultNamespace("chest_boat/" + woodSet.getName()),
                     "main"
             );
             locationForBoat.put(woodSet.getBoat(), boat);
@@ -98,6 +95,7 @@ public class RootboundClient {
 
     }
 
+    @SuppressWarnings("unused")
     public static void gatherData(final GatherDataEvent.Client event, Set<WoodSet> woodSets) {
         try {
             // Store some frequently-used fields for later use.
@@ -114,7 +112,7 @@ public class RootboundClient {
                     )), lookupProvider
                     ) {
                         @Override
-                        protected void validate(WritableRegistry<LootTable> writableregistry, ValidationContext context, ProblemReporter.Collector collector) {
+                        protected void validate(WritableRegistry<LootTable> lootTableRegistry, ValidationContext validationContext, ProblemReporter.Collector collector) {
                             // Do not validate at all, per what people online said.
                         }
                     }
@@ -122,18 +120,6 @@ public class RootboundClient {
 
             // Generate data for the recipes
             generator.addProvider(true, new RootboundRecipeProvider.Runner(packOutput, lookupProvider, woodSets));
-
-            // Generate data for the tags
-//            BlockTagsProvider blockTagsProvider = new RootboundBlockTagProvider(packOutput, lookupProvider, woodSets);
-//            generator.addProvider(true, blockTagsProvider);
-//            generator.addProvider(
-//                    true,
-//                    new RootboundItemTagProvider(
-//                            packOutput,
-//                            lookupProvider,
-//                            woodSets
-//                    )
-//            );
 
             // Generate block and item models.
             generator.addProvider(true, new RootboundModelProvider(packOutput, woodSets));

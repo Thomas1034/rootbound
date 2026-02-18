@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class RootboundModelProvider extends ModelProvider {
     }
 
     @Override
-    protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+    protected void registerModels(@NotNull BlockModelGenerators blockModels, @NotNull ItemModelGenerators itemModels) {
 
         this.blockModels = blockModels;
         this.itemModels = itemModels;
@@ -56,12 +57,12 @@ public class RootboundModelProvider extends ModelProvider {
     }
 
     @Override
-    public Stream<? extends Holder<Block>> getKnownBlocks() {
+    public @NotNull Stream<? extends Holder<Block>> getKnownBlocks() {
         return BuiltInRegistries.BLOCK.listElements().filter((holder) -> this.knownBlocks.contains(holder.value()));
     }
 
     @Override
-    public Stream<? extends Holder<Item>> getKnownItems() {
+    public @NotNull Stream<? extends Holder<Item>> getKnownItems() {
         return BuiltInRegistries.ITEM.listElements().filter((holder) -> this.knownItems.contains(holder.value()));
     }
 
@@ -70,14 +71,14 @@ public class RootboundModelProvider extends ModelProvider {
 
         blockModels.family(woodSet.getPlanks().get()).generateFor(woodSet.getFamily());
         if (woodSet.hasMosaic()) {
-            blockModels.family(woodSet.getMosaic().get()).generateFor(woodSet.getMosaicFamily());
+            blockModels.family(woodSet.getOrThrowMosaic().get()).generateFor(woodSet.getMosaicFamily());
         }
         blockModels.createHangingSign(planks, woodSet.getHangingSign().get(), woodSet.getWallHangingSign().get());
         blockModels.createAxisAlignedPillarBlock(woodSet.getLog().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getStrippedLog().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getWood().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getStrippedWood().get(), TexturedModel.COLUMN);
-
+        blockModels.createShelf(woodSet.getShelf().get(), woodSet.getStrippedWood().get());
         basicItem(woodSet.getBoatItem().get());
         basicItem(woodSet.getChestBoatItem().get());
     }

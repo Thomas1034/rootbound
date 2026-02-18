@@ -25,13 +25,13 @@ import net.minecraft.core.dispenser.BoatDispenseItemBehavior;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.ChestBoat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.boat.ChestBoat;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.*;
@@ -40,8 +40,10 @@ import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.PushReaction;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -69,28 +71,29 @@ public class WoodSet {
     private final float burnTimeFactor;
     private final boolean hasMosaic;
     // The blocks created
-    protected RegistryObject<Block, Block> log;
-    protected RegistryObject<Block, Block> wood;
-    protected RegistryObject<Block, Block> strippedLog;
-    protected RegistryObject<Block, Block> strippedWood;
+    protected RegistryObject<Block, RotatedPillarBlock> log;
+    protected RegistryObject<Block, RotatedPillarBlock> wood;
+    protected RegistryObject<Block, RotatedPillarBlock> strippedLog;
+    protected RegistryObject<Block, RotatedPillarBlock> strippedWood;
     protected RegistryObject<Block, Block> planks;
-    protected RegistryObject<Block, Block> slab;
-    protected RegistryObject<Block, Block> stairs;
-    protected RegistryObject<Block, Block> fence;
-    protected RegistryObject<Block, Block> fenceGate;
-    protected RegistryObject<Block, Block> button;
-    protected RegistryObject<Block, Block> pressurePlate;
-    protected RegistryObject<Block, Block> door;
-    protected RegistryObject<Block, Block> trapdoor;
-    protected RegistryObject<Block, Block> sign;
-    protected RegistryObject<Block, Block> wallSign;
-    protected RegistryObject<Block, Block> hangingSign;
-    protected RegistryObject<Block, Block> wallHangingSign;
+    protected RegistryObject<Block, SlabBlock> slab;
+    protected RegistryObject<Block, StairBlock> stairs;
+    protected RegistryObject<Block, FenceBlock> fence;
+    protected RegistryObject<Block, FenceGateBlock> fenceGate;
+    protected RegistryObject<Block, ButtonBlock> button;
+    protected RegistryObject<Block, PressurePlateBlock> pressurePlate;
+    protected RegistryObject<Block, DoorBlock> door;
+    protected RegistryObject<Block, TrapDoorBlock> trapdoor;
+    protected RegistryObject<Block, SignBlock> sign;
+    protected RegistryObject<Block, WallSignBlock> wallSign;
+    protected RegistryObject<Block, CeilingHangingSignBlock> hangingSign;
+    protected RegistryObject<Block, WallHangingSignBlock> wallHangingSign;
+    protected RegistryObject<Block, ShelfBlock> shelf;
     // The items created
     protected RegistryObject<Item, Item> signItem;
     protected RegistryObject<Item, Item> hangingSignItem;
-    protected RegistryObject<Item, Item> boatItem;
-    protected RegistryObject<Item, Item> chestBoatItem;
+    protected RegistryObject<Item, BoatItem> boatItem;
+    protected RegistryObject<Item, BoatItem> chestBoatItem;
     // The entities created
     protected RegistryObject<EntityType<?>, EntityType<? extends Boat>> boat;
     protected RegistryObject<EntityType<?>, EntityType<? extends ChestBoat>> chestBoat;
@@ -102,8 +105,8 @@ public class WoodSet {
     protected BlockFamily family = null;
     private BlockFamily mosaicFamily = null;
     private RegistryObject<Block, Block> mosaic;
-    private RegistryObject<Block, Block> mosaicSlab;
-    private RegistryObject<Block, Block> mosaicStairs;
+    private RegistryObject<Block, SlabBlock> mosaicSlab;
+    private RegistryObject<Block, StairBlock> mosaicStairs;
 
     public WoodSet(String modid, String setName, Supplier<BlockBehaviour.Properties> baseProperties, float burnTimeFactor, boolean isFlammable) {
         this(modid, setName, baseProperties, burnTimeFactor, isFlammable, false);
@@ -132,12 +135,16 @@ public class WoodSet {
         Services.WOOD_SET_HELPER.registerStrippables(this);
     }
 
-    private static EntityType.EntityFactory<Boat> boatFactory(Supplier<Item> p_376580_) {
-        return (p_375558_, p_375559_) -> new Boat(p_375558_, p_375559_, p_376580_);
+    private static EntityType.EntityFactory<@NotNull Boat> boatFactory(Supplier<Item> itemSupplier) {
+        return (type, level) -> new Boat(type, level, itemSupplier);
     }
 
-    private static EntityType.EntityFactory<ChestBoat> chestBoatFactory(Supplier<Item> p_376578_) {
-        return (p_375555_, p_375556_) -> new ChestBoat(p_375555_, p_375556_, p_376578_);
+    private static EntityType.EntityFactory<@NotNull ChestBoat> chestBoatFactory(Supplier<Item> itemSupplier) {
+        return (type, level) -> new ChestBoat(type, level, itemSupplier);
+    }
+
+    public static <T> T throwIfNullForMosaics(T t, WoodSet w) {
+        return Objects.requireNonNull(t, "The wood set " + w.getName() + " is marked as having mosaics, but does not!");
     }
 
     public void registerDispenserBehaviors() {
@@ -150,11 +157,9 @@ public class WoodSet {
 
     public BlockFamily getMosaicFamily() {
         if (this.mosaicFamily == null && this.hasMosaic) {
-            BlockFamily.Builder builder = new BlockFamily.Builder(this.getMosaic().get())
-                    .slab(this.getMosaicSlab().get())
-                    .stairs(this.getMosaicStairs().get());
-            this.mosaicFamily = builder
-                    .getFamily();
+            BlockFamily.Builder builder = new BlockFamily.Builder(this.getOrThrowMosaic()
+                    .get()).slab(this.getOrThrowMosaicSlab().get()).stairs(this.getOrThrowMosaicStairs().get());
+            this.mosaicFamily = builder.getFamily();
         }
         return this.mosaicFamily;
     }
@@ -171,10 +176,9 @@ public class WoodSet {
                     .door(this.getDoor().get())
                     .trapdoor(this.getTrapdoor().get());
             if (this.hasMosaic) {
-                builder.mosaic(this.getMosaic().get());
+                builder.mosaic(this.getOrThrowMosaic().get());
             }
-            this.family = builder
-                    .getFamily();
+            this.family = builder.getFamily();
         }
 
         return this.family;
@@ -197,6 +201,7 @@ public class WoodSet {
             registrar.accept(this.fenceGate.get(), 5, 20);
             registrar.accept(this.door.get(), 5, 20);
             registrar.accept(this.trapdoor.get(), 5, 20);
+            registrar.accept(this.shelf.get(), 30, 20);
             if (this.hasMosaic) {
                 registrar.accept(this.mosaic.get(), 5, 20);
                 registrar.accept(this.mosaicSlab.get(), 5, 20);
@@ -275,10 +280,12 @@ public class WoodSet {
         return this.setName;
     }
 
+    @SuppressWarnings("unused")
     public String getModid() {
         return this.modid;
     }
 
+    @SuppressWarnings("unused")
     public WoodType getType() {
         return this.woodType;
     }
@@ -293,7 +300,7 @@ public class WoodSet {
                         .clientTrackingRange(10)
                         .build(ResourceKey.create(
                                 Registries.ENTITY_TYPE,
-                                ResourceLocation.fromNamespaceAndPath(this.modid, typeName("_boat"))
+                                Identifier.fromNamespaceAndPath(this.modid, typeName("_boat"))
                         ))
         );
         this.chestBoat = this.entities.register(
@@ -305,7 +312,7 @@ public class WoodSet {
                         .clientTrackingRange(10)
                         .build(ResourceKey.create(
                                 Registries.ENTITY_TYPE,
-                                ResourceLocation.fromNamespaceAndPath(this.modid, typeName("_chest_boat"))
+                                Identifier.fromNamespaceAndPath(this.modid, typeName("_chest_boat"))
                         ))
         );
     }
@@ -405,6 +412,10 @@ public class WoodSet {
                 typeName("_door"),
                 () -> new DoorBlock(this.setType, this.doorProperties(typeName("_door")))
         );
+        this.shelf = registerBlockWithItem(
+                typeName("_shelf"),
+                () -> new ShelfBlock(this.shelfProperties(typeName("_shelf")))
+        );
         if (this.hasMosaic) {
             this.mosaic = registerBlockWithItem(
                     typeName("_mosaic"),
@@ -428,6 +439,7 @@ public class WoodSet {
         return this.setName + suffix;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected String splitName(String prefix, String suffix) {
         return prefix + this.setName + suffix;
     }
@@ -450,14 +462,14 @@ public class WoodSet {
         return this.blocks.register(name, block);
     }
 
-    protected RegistryObject<Item, Item> register(String name, Supplier<Item> supplier) {
+    protected <T extends Item> RegistryObject<Item, T> register(String name, Supplier<T> supplier) {
         return this.items.register(name, supplier);
     }
 
     protected Item.Properties itemProperties(String name) {
         return new Item.Properties().setId(ResourceKey.create(
                 Registries.ITEM,
-                ResourceLocation.fromNamespaceAndPath(this.modid, name)
+                Identifier.fromNamespaceAndPath(this.modid, name)
         ));
     }
 
@@ -469,19 +481,19 @@ public class WoodSet {
         return logItems;
     }
 
-    public RegistryObject<Block, Block> getLog() {
+    public RegistryObject<Block, RotatedPillarBlock> getLog() {
         return log;
     }
 
-    public RegistryObject<Block, Block> getWood() {
+    public RegistryObject<Block, RotatedPillarBlock> getWood() {
         return wood;
     }
 
-    public RegistryObject<Block, Block> getStrippedLog() {
+    public RegistryObject<Block, RotatedPillarBlock> getStrippedLog() {
         return strippedLog;
     }
 
-    public RegistryObject<Block, Block> getStrippedWood() {
+    public RegistryObject<Block, RotatedPillarBlock> getStrippedWood() {
         return strippedWood;
     }
 
@@ -489,11 +501,11 @@ public class WoodSet {
         return planks;
     }
 
-    public RegistryObject<Block, Block> getSlab() {
+    public RegistryObject<Block, SlabBlock> getSlab() {
         return slab;
     }
 
-    public RegistryObject<Block, Block> getStairs() {
+    public RegistryObject<Block, StairBlock> getStairs() {
         return stairs;
     }
 
@@ -501,27 +513,44 @@ public class WoodSet {
         return mosaic;
     }
 
-    public @Nullable RegistryObject<Block, Block> getMosaicSlab() {
+    public @Nullable RegistryObject<Block, SlabBlock> getMosaicSlab() {
         return mosaicSlab;
     }
 
-    public @Nullable RegistryObject<Block, Block> getMosaicStairs() {
+    public @Nullable RegistryObject<Block, StairBlock> getMosaicStairs() {
         return mosaicStairs;
     }
 
-    public RegistryObject<Block, Block> getFence() {
+    public RegistryObject<Block, Block> getOrThrowMosaic() {
+        return WoodSet.throwIfNullForMosaics(mosaic, this);
+    }
+
+    public RegistryObject<Block, SlabBlock> getOrThrowMosaicSlab() {
+        return WoodSet.throwIfNullForMosaics(mosaicSlab, this);
+    }
+
+    public RegistryObject<Block, StairBlock> getOrThrowMosaicStairs() {
+        return WoodSet.throwIfNullForMosaics(mosaicStairs, this);
+    }
+
+    public RegistryObject<Block, FenceBlock> getFence() {
         return fence;
     }
 
-    public RegistryObject<Block, Block> getFenceGate() {
+    public RegistryObject<Block, FenceGateBlock> getFenceGate() {
         return fenceGate;
     }
 
-    public RegistryObject<Block, Block> getSign() {
+    public RegistryObject<Block, ShelfBlock> getShelf() {
+        return shelf;
+    }
+
+    public RegistryObject<Block, SignBlock> getSign() {
         return sign;
     }
 
-    public RegistryObject<Block, Block> getWallSign() {
+
+    public RegistryObject<Block, WallSignBlock> getWallSign() {
         return wallSign;
     }
 
@@ -529,11 +558,11 @@ public class WoodSet {
         return signItem;
     }
 
-    public RegistryObject<Block, Block> getHangingSign() {
+    public RegistryObject<Block, CeilingHangingSignBlock> getHangingSign() {
         return hangingSign;
     }
 
-    public RegistryObject<Block, Block> getWallHangingSign() {
+    public RegistryObject<Block, WallHangingSignBlock> getWallHangingSign() {
         return wallHangingSign;
     }
 
@@ -541,27 +570,27 @@ public class WoodSet {
         return hangingSignItem;
     }
 
-    public RegistryObject<Block, Block> getButton() {
+    public RegistryObject<Block, ButtonBlock> getButton() {
         return button;
     }
 
-    public RegistryObject<Block, Block> getPressurePlate() {
+    public RegistryObject<Block, PressurePlateBlock> getPressurePlate() {
         return pressurePlate;
     }
 
-    public RegistryObject<Block, Block> getDoor() {
+    public RegistryObject<Block, DoorBlock> getDoor() {
         return door;
     }
 
-    public RegistryObject<Block, Block> getTrapdoor() {
+    public RegistryObject<Block, TrapDoorBlock> getTrapdoor() {
         return trapdoor;
     }
 
-    public RegistryObject<Item, Item> getBoatItem() {
+    public RegistryObject<Item, BoatItem> getBoatItem() {
         return boatItem;
     }
 
-    public RegistryObject<Item, Item> getChestBoatItem() {
+    public RegistryObject<Item, BoatItem> getChestBoatItem() {
         return chestBoatItem;
     }
 
@@ -577,6 +606,7 @@ public class WoodSet {
         return this.base.get().setId(id(name));
     }
 
+    @SuppressWarnings("unused")
     public BlockBehaviour.Properties blockProperties(Block block, String name) {
         return BlockBehaviour.Properties.ofFullCopy(block).setId(id(name));
     }
@@ -605,30 +635,38 @@ public class WoodSet {
         return this.blockProperties(name).forceSolidOn();
     }
 
+    protected BlockBehaviour.Properties shelfProperties(String name) {
+        return this.blockProperties(name)
+                .sound(SoundType.SHELF)
+                .ignitedByLava()
+                .strength(2.0F, 3.0F);
+    }
+
     protected BlockBehaviour.Properties signProperties(String name) {
-        return this.blockProperties(name).forceSolidOn().noCollission().strength(1.0F);
+        return this.blockProperties(name).forceSolidOn().noCollision().strength(1.0F);
     }
 
     protected BlockBehaviour.Properties wallSignProperties(String name) {
-        return this.blockProperties(name).forceSolidOn().noCollission().strength(1.0F);
+        return this.blockProperties(name).forceSolidOn().noCollision().strength(1.0F);
     }
 
+    @SuppressWarnings("unused")
     protected BlockBehaviour.Properties hangingSignProperties(String name) {
-        return this.blockProperties(name).forceSolidOn().noCollission().strength(1.0F);
+        return this.blockProperties(name).forceSolidOn().noCollision().strength(1.0F);
     }
 
     protected BlockBehaviour.Properties wallHangingSignProperties(String name) {
-        return this.blockProperties(name).forceSolidOn().noCollission().strength(1.0F);
+        return this.blockProperties(name).forceSolidOn().noCollision().strength(1.0F);
     }
 
     protected BlockBehaviour.Properties buttonProperties(String name) {
-        return this.blockProperties(name).noCollission().strength(0.5F).pushReaction(PushReaction.DESTROY);
+        return this.blockProperties(name).noCollision().strength(0.5F).pushReaction(PushReaction.DESTROY);
     }
 
     protected BlockBehaviour.Properties pressurePlateProperties(String name) {
         return this.blockProperties(name)
                 .forceSolidOn()
-                .noCollission()
+                .noCollision()
                 .strength(0.5F)
                 .pushReaction(PushReaction.DESTROY);
     }
@@ -642,13 +680,14 @@ public class WoodSet {
     }
 
     private ResourceKey<Block> id(String name) {
-        return ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(this.modid, name));
+        return ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(this.modid, name));
     }
 
     public boolean hasMosaic() {
         return this.hasMosaic;
     }
 
+    @SuppressWarnings("unused")
     public static class BurnTimes {
         public static final int SINGLE_ITEM = 200;
         // The burn times of common items, in ticks.

@@ -21,33 +21,33 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.startraveler.rootbound.Constants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public class ConfiguredFeatureSetEntry extends FeatureSet.Entry {
 
     public static final Codec<ConfiguredFeatureSetEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("configured_feature").forGetter(ConfiguredFeatureSetEntry::getConfiguredFeatureLocation),
+            Identifier.CODEC.fieldOf("configured_feature").forGetter(ConfiguredFeatureSetEntry::getConfiguredFeatureLocation),
             Codec.INT.fieldOf("weight").forGetter(ConfiguredFeatureSetEntry::getWeight)
     ).apply(instance, ConfiguredFeatureSetEntry::new));
 
-    public static final ResourceLocation TYPE = Constants.location("configured_feature");
+    public static final Identifier TYPE = Constants.location("configured_feature");
 
-    private final ResourceLocation configuredFeatureLocation;
+    private final Identifier configuredFeatureLocation;
     private ConfiguredFeature<?, ?> configuredFeature;
 
-    public ConfiguredFeatureSetEntry(ResourceLocation configuredFeature, int weight) {
+    public ConfiguredFeatureSetEntry(Identifier configuredFeature, int weight) {
         super(weight);
         this.configuredFeatureLocation = configuredFeature;
     }
 
-    public ResourceLocation getConfiguredFeatureLocation() {
+    public Identifier getConfiguredFeatureLocation() {
         return this.configuredFeatureLocation;
     }
 
     @Override
-    public ResourceLocation getType() {
+    public Identifier getType() {
         return TYPE;
     }
 

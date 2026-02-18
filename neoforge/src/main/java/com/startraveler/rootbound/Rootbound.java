@@ -15,8 +15,8 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +40,7 @@ public class Rootbound {
         modBus.addListener(this::registerDatapackRegistries);
     }
 
-
+    @SuppressWarnings("unused")
     public static void initializeWoodSets(IEventBus modBus, Set<WoodSet> sets) {
 
         modBus.addListener(
@@ -51,14 +51,14 @@ public class Rootbound {
                             .toList();
                     for (EntityType<? extends Container> entityType : woodSetChestBoats) {
                         event.registerEntity(
-                                Capabilities.ItemHandler.ENTITY,
+                                Capabilities.Item.ENTITY,
                                 entityType,
-                                (entity, ctx) -> new InvWrapper(entity)
+                                (entity, ctx) -> VanillaContainerWrapper.of(entity)
                         );
                         event.registerEntity(
-                                Capabilities.ItemHandler.ENTITY_AUTOMATION,
+                                Capabilities.Item.ENTITY_AUTOMATION,
                                 entityType,
-                                (entity, ctx) -> new InvWrapper(entity)
+                                (entity, ctx) -> VanillaContainerWrapper.of(entity)
                         );
                     }
                 }
@@ -73,18 +73,18 @@ public class Rootbound {
                                 woodSet.getHangingSign().get(),
                                 woodSet.getWallHangingSign().get()
                         );
+                        event.modify(BlockEntityType.SHELF, woodSet.getShelf().get());
+
                     }
                 }
         );
         modBus.addListener(
-                FMLCommonSetupEvent.class, event -> {
-                    event.enqueueWork(() -> {
-                        for (WoodSet woodSet : sets) {
-                            woodSet.registerFlammability(((FireBlock) Blocks.FIRE)::setFlammable);
-                            woodSet.registerDispenserBehaviors();
-                        }
-                    });
-                }
+                FMLCommonSetupEvent.class, event -> event.enqueueWork(() -> {
+                    for (WoodSet woodSet : sets) {
+                        woodSet.registerFlammability(((FireBlock) Blocks.FIRE)::setFlammable);
+                        woodSet.registerDispenserBehaviors();
+                    }
+                })
         );
     }
 

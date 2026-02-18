@@ -18,14 +18,14 @@ package com.startraveler.rootbound.blocktransformer.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-public record BlockTransformerResultOption(ResourceLocation name, int weight) {
+public record BlockTransformerResultOption(Identifier name, int weight) {
 
     // Codec for ResultItem (object with name and weight)
     public static final Codec<BlockTransformerResultOption> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    ResourceLocation.CODEC.fieldOf("name").forGetter(item -> item.name),
+                    Identifier.CODEC.fieldOf("name").forGetter(item -> item.name),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(item -> item.weight)
             ).apply(instance, BlockTransformerResultOption::new)
     );

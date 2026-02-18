@@ -1,10 +1,10 @@
 plugins {
     // see https://fabricmc.net/develop/ for new versions
-    id 'fabric-loom' version '1.10-SNAPSHOT' apply false
+    id 'fabric-loom' version '1.13-SNAPSHOT' apply false
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
-    id 'net.neoforged.moddev' version '2.0.95' apply false
+    id 'net.neoforged.moddev' version '2.0.123' apply false
     // helps with multiloader registration
-    id 'com.matyrobbrt.mc.registrationutils' version '1.21.3-0.1.1'
+    id 'com.matyrobbrt.mc.registrationutils' version '1.21.11-0.1.0'
 }
 registrationUtils {
     group 'com.startraveler.rootbound.registration'

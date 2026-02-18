@@ -6,12 +6,13 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -27,8 +28,6 @@ public class RootboundRecipeProvider extends RecipeProvider {
         this.woodSets = woodSets;
     }
 
-
-    // TODO marking the place since IntelliJ sorts this file (partially and arbitrarily)
     @Override
     protected void buildRecipes() {
         for (WoodSet woodSet : this.woodSets) {
@@ -40,7 +39,7 @@ public class RootboundRecipeProvider extends RecipeProvider {
         shaped(pattern, tokens, ingredients, recipeCategory, result, count, null);
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "SameParameterValue"})
     protected void shaped(List<String> pattern, List<Character> tokens, List<Object> ingredients, RecipeCategory recipeCategory, ItemLike result, int count, String group) {
 
         ShapedRecipeBuilder recipe = shaped(recipeCategory, result, count);
@@ -72,15 +71,15 @@ public class RootboundRecipeProvider extends RecipeProvider {
         }
 
         // Adds in the unlock trigger for the ingredients.
-        for (int i = 0; i < ingredients.size(); i++) {
-            if (ingredients.get(i) instanceof ItemLike) {
-                String name = getHasName((ItemLike) ingredients.get(i));
-                recipe = recipe.unlockedBy(name, has((ItemLike) ingredients.get(i)));
-            } else if (ingredients.get(i) instanceof TagKey) {
-                String name = "has_" + ((TagKey<Item>) ingredients.get(i)).registry().registry().toDebugFileName();
-                recipe = recipe.unlockedBy(name, has((TagKey<Item>) ingredients.get(i)));
+        for (Object ingredient : ingredients) {
+            if (ingredient instanceof ItemLike) {
+                String name = getHasName((ItemLike) ingredient);
+                recipe = recipe.unlockedBy(name, has((ItemLike) ingredient));
+            } else if (ingredient instanceof TagKey) {
+                String name = "has_" + ((TagKey<Item>) ingredient).registry().registry().toDebugFileName();
+                recipe = recipe.unlockedBy(name, has((TagKey<Item>) ingredient));
             } else {
-                throw new IllegalArgumentException("Unrecognized item or tag type: " + ingredients.get(i));
+                throw new IllegalArgumentException("Unrecognized item or tag type: " + ingredient);
             }
         }
         // Adds in the unlock trigger for the result.
@@ -120,17 +119,14 @@ public class RootboundRecipeProvider extends RecipeProvider {
         }
 
         // Adds in the unlock triggers for the ingredients.
-        for (int i = 0; i < ingredients.size(); i++) {
-            if (ingredients.get(i) instanceof ItemLike) {
-                recipe = recipe.unlockedBy(
-                        getHasName((ItemLike) ingredients.get(i)),
-                        has((ItemLike) ingredients.get(i))
-                );
-            } else if (ingredients.get(i) instanceof TagKey) {
-                String name = "has" + ((TagKey<Item>) ingredients.get(i)).registry().registry().toDebugFileName();
-                recipe = recipe.unlockedBy(name, has((TagKey<Item>) ingredients.get(i)));
+        for (Object ingredient : ingredients) {
+            if (ingredient instanceof ItemLike) {
+                recipe = recipe.unlockedBy(getHasName((ItemLike) ingredient), has((ItemLike) ingredient));
+            } else if (ingredient instanceof TagKey) {
+                String name = "has" + ((TagKey<Item>) ingredient).registry().registry().toDebugFileName();
+                recipe = recipe.unlockedBy(name, has((TagKey<Item>) ingredient));
             } else {
-                throw new IllegalArgumentException("Unrecognized item or tag type: " + ingredients.get(i));
+                throw new IllegalArgumentException("Unrecognized item or tag type: " + ingredient);
             }
         }
         // Adds in the unlock trigger for the result.
@@ -143,6 +139,7 @@ public class RootboundRecipeProvider extends RecipeProvider {
 
     }
 
+    @SuppressWarnings("unused")
     protected void foodCooking(List<ItemLike> ingredients, RecipeCategory category, ItemLike result, float experience, int cookingTime) {
         String group = (namespace(result) + ":" + getItemName(result));
         campfire(ingredients, category, result, experience, 2 * cookingTime, group);
@@ -180,19 +177,19 @@ public class RootboundRecipeProvider extends RecipeProvider {
                     List.of('s'),
                     List.of(woodSet.getSlab().get()),
                     RecipeCategory.BUILDING_BLOCKS,
-                    woodSet.getMosaic().get(),
+                    woodSet.getOrThrowMosaic().get(),
                     1
             );
-            stairBuilder(woodSet.getMosaicStairs().get(), Ingredient.of(woodSet.getMosaic().get())).group(
+            stairBuilder(woodSet.getOrThrowMosaicStairs().get(), Ingredient.of(woodSet.getOrThrowMosaic().get())).group(
                             "wooden_stairs")
-                    .unlockedBy(hasPlanks(woodSet), has(woodSet.getMosaic().get()))
+                    .unlockedBy(hasPlanks(woodSet), has(woodSet.getOrThrowMosaic().get()))
                     .save(this.output);
             this.slabBuilder(
                             RecipeCategory.BUILDING_BLOCKS,
-                            woodSet.getMosaicSlab().get(),
-                            Ingredient.of(woodSet.getMosaic().get())
+                            woodSet.getOrThrowMosaicSlab().get(),
+                            Ingredient.of(woodSet.getOrThrowMosaic().get())
                     )
-                    .unlockedBy(hasPlanks(woodSet), this.has(woodSet.getMosaic().get()))
+                    .unlockedBy(hasPlanks(woodSet), this.has(woodSet.getOrThrowMosaic().get()))
                     .group("wooden_slab")
                     .save(this.output);
         }
@@ -209,6 +206,8 @@ public class RootboundRecipeProvider extends RecipeProvider {
         buttonBuilder(woodSet.getButton().get(), Ingredient.of(woodSet.getPlanks().get())).group("wooden_button")
                 .unlockedBy(hasPlanks(woodSet), has(woodSet.getPlanks().get()))
                 .save(this.output);
+
+        shelf(woodSet.getShelf().get(), woodSet.getStrippedLog().get());
 
         pressurePlate(woodSet.getPressurePlate().get(), woodSet.getPlanks().get());
 
@@ -256,6 +255,7 @@ public class RootboundRecipeProvider extends RecipeProvider {
         return has(woodSet, "_planks");
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected String has(WoodSet woodSet, String suffix) {
         return "has_" + woodSet.getName() + "_" + suffix;
     }
@@ -271,8 +271,8 @@ public class RootboundRecipeProvider extends RecipeProvider {
     }
 
     @SuppressWarnings("deprecation")
-    protected ResourceLocation identifier(ItemLike item) {
-        return item.asItem().builtInRegistryHolder().key().location();
+    protected Identifier identifier(ItemLike item) {
+        return item.asItem().builtInRegistryHolder().key().identifier();
     }
 
     protected void campfire(List<ItemLike> ingredients, RecipeCategory category, ItemLike result, float experience, int cookingTime, String group) {
@@ -317,6 +317,7 @@ public class RootboundRecipeProvider extends RecipeProvider {
         );
     }
 
+    @SuppressWarnings("unused")
     protected void blasting(List<ItemLike> ingredients, RecipeCategory category, ItemLike result, float experience, int cookingTime, String group) {
         cooking(
                 RecipeSerializer.BLASTING_RECIPE,
@@ -362,12 +363,12 @@ public class RootboundRecipeProvider extends RecipeProvider {
         }
 
         @Override
-        protected RecipeProvider createRecipeProvider(HolderLookup.Provider provider, RecipeOutput output) {
+        protected @NotNull RecipeProvider createRecipeProvider(HolderLookup.@NotNull Provider provider, @NotNull RecipeOutput output) {
             return new RootboundRecipeProvider(provider, output, woodSets);
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "Rootbound Recipe Provider";
         }
     }

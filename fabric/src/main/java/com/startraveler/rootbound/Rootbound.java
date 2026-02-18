@@ -14,10 +14,11 @@ import java.util.Set;
 
 public class Rootbound implements ModInitializer {
 
-
+    @SuppressWarnings("unused")
     public static void initializeWoodSets(Set<WoodSet> sets) {
         // Add wood sets.
         for (WoodSet woodSet : sets) {
+            BlockEntityType.SHELF.addSupportedBlock(woodSet.getShelf().get());
             BlockEntityType.SIGN.addSupportedBlock(woodSet.getSign().get());
             BlockEntityType.SIGN.addSupportedBlock(woodSet.getWallSign().get());
             BlockEntityType.HANGING_SIGN.addSupportedBlock(woodSet.getHangingSign().get());
