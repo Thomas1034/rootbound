@@ -78,7 +78,7 @@ public class RootboundModelProvider extends ModelProvider {
         blockModels.createAxisAlignedPillarBlock(woodSet.getStrippedLog().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getWood().get(), TexturedModel.COLUMN);
         blockModels.createAxisAlignedPillarBlock(woodSet.getStrippedWood().get(), TexturedModel.COLUMN);
-        blockModels.createShelf(woodSet.getShelf().get(), woodSet.getStrippedWood().get());
+        blockModels.createShelf(woodSet.getShelf().get(), woodSet.getPlanks().get());
         basicItem(woodSet.getBoatItem().get());
         basicItem(woodSet.getChestBoatItem().get());
     }

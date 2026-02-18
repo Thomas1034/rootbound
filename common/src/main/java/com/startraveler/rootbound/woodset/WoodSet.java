@@ -510,6 +510,7 @@ public class WoodSet {
         return stairs;
     }
 
+    @SuppressWarnings("unused")
     public @Nullable RegistryObject<Block, Block> getMosaic() {
         return mosaic;
     }

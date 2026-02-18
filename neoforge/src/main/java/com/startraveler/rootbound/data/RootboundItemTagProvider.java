@@ -7,10 +7,12 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.ItemTags;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+@SuppressWarnings("unused")
 public class RootboundItemTagProvider extends ItemTagsProvider {
     private final Set<WoodSet> woodSets;
 
@@ -24,7 +26,7 @@ public class RootboundItemTagProvider extends ItemTagsProvider {
     }
 
     @Override
-    protected void addTags(HolderLookup.Provider provider) {
+    protected void addTags(HolderLookup.@NotNull Provider provider) {
         for (WoodSet woodSet : this.woodSets) {
             generateFor(woodSet);
         }
@@ -65,8 +67,8 @@ public class RootboundItemTagProvider extends ItemTagsProvider {
         this.tag(Tags.Items.FENCE_GATES_WOODEN).add(woodSet.getFenceGate().get().asItem());
         this.tag(Tags.Items.FENCES_WOODEN).add(woodSet.getFence().get().asItem());
         if (woodSet.hasMosaic()) {
-            this.tag(ItemTags.WOODEN_SLABS).add(woodSet.getMosaicSlab().get().asItem());
-            this.tag(ItemTags.WOODEN_STAIRS).add(woodSet.getMosaicStairs().get().asItem());
+            this.tag(ItemTags.WOODEN_SLABS).add(woodSet.getOrThrowMosaicSlab().get().asItem());
+            this.tag(ItemTags.WOODEN_STAIRS).add(woodSet.getOrThrowMosaicStairs().get().asItem());
         }
     }
 }
