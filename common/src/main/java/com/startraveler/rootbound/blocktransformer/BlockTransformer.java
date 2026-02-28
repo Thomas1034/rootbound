@@ -21,6 +21,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.startraveler.rootbound.Constants;
 import com.startraveler.rootbound.blocktransformer.data.BlockTransformerData;
 import com.startraveler.rootbound.blocktransformer.data.BlockTransformerResultOption;
+import com.startraveler.rootbound.registrycache.ReloadableRegistryCache;
 import com.startraveler.rootbound.util.AliasBuilder;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -40,6 +41,8 @@ import java.util.*;
 import java.util.function.Function;
 
 public class BlockTransformer {
+
+    public static final ReloadableRegistryCache.Transformers SAFE_CACHE = new ReloadableRegistryCache.Transformers();
 
     public static final ResourceKey<Registry<BlockTransformer>> KEY = ResourceKey.createRegistryKey(Constants.location(
             "block_transformer"));

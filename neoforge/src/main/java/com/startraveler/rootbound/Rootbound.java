@@ -4,6 +4,7 @@ package com.startraveler.rootbound;
 import com.startraveler.rootbound.blocktransformer.BlockTransformer;
 import com.startraveler.rootbound.featureset.FeatureSet;
 import com.startraveler.rootbound.woodset.WoodSet;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
@@ -14,6 +15,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
@@ -85,6 +87,13 @@ public class Rootbound {
                         woodSet.registerDispenserBehaviors();
                     }
                 })
+        );
+
+        modBus.addListener(AddServerReloadListenersEvent.class,
+                event -> event.addListener(
+                        Identifier.fromNamespaceAndPath(Constants.MOD_ID, "clear_cache"),
+                        BlockTransformer.SAFE_CACHE
+                )
         );
     }
 
